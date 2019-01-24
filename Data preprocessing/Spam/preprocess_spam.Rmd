@@ -1,5 +1,5 @@
 ---
-title: "SVD"
+title: "Preprocessing"
 output: html_notebook
 ---
 
@@ -124,24 +124,9 @@ pre_process_text_data <- function(train, test) {
   
   return(result)
 }
-
-perform_svd <- function(data, features_count) {
-  # Perform SVD.
-  data_irlba <- irlba(t(data), nv = features_count, maxit = (2 * features_count))
-  sigma_inverse <- 1 / data_irlba$d
-  u_transpose <- t(data_irlba$u)
-  
-  result <- list("v" = data_irlba$v, "sigma_inverse" = sigma_inverse, "u_transpose" = u_transpose)
-  
-  return(result)
-}
 ```
 
 ```{r}
-prepare_movie_data <- function() {
-  
-}
-
 prepare_spam_data <- function() {
   # Load up the .CSV data and explore in RStudio.
   spam.raw <- read.csv("spam.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8")
@@ -181,85 +166,13 @@ write_spam_data_to_csv <- function(data) {
   names(train_df) <- make.names(names(train_df))
   test_df <- data.frame(Label = data$test$Label, data$test_tokens_tf_idf)
   names(test_df) <- make.names(names(test_df))
-  write.csv(train_df, file = "spam_train_bag_of_words_with_svd.csv", fileEncoding = "UTF-8")
-  write.csv(test_df, file = "spam_test_bag_of_words_with_svd.csv", fileEncoding = "UTF-8")
-}
-
-write_movie_data_to_csv <- function(data) {
-  train_df <- data.frame(Label = data$train$Label, data$train_tokens_tf_idf)
-  names(train_df) <- make.names(names(train_df))
-  test_df <- data.frame(Label = data$test$Label, data$test_tokens_tf_idf)
-  names(test_df) <- make.names(names(test_df))
-  write.csv(train_df, file = "movie_train_bag_of_words_with_svd.csv", fileEncoding = "UTF-8")
-  write.csv(test_df, file = "movie_test_bag_of_words_with_svd.csv", fileEncoding = "UTF-8")
-}
-
-load_prepared_spam_data <- function() {
-  train <- read.csv("spam_train_bag_of_words.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-  test <- read.csv("spam_test_bag_of_words.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-  train_tokens_tf_idf = as.matrix(train[,-(1:2)])
-  test_tokens_tf_idf = as.matrix(test[,-(1:2)])
-  # Convert our class label into a factor.
-  train$Label <- as.factor(train$Label)
-  test$Label <- as.factor(test$Label)
-  result <- list(
-    "train" = train, "test" = test,
-    "train_tokens_tf_idf" = train_tokens_tf_idf,  "test_tokens_tf_idf" = test_tokens_tf_idf)
-  
-  return(result)
-}
-
-load_prepared_movie_data <- function() {
-  train <- read.csv("movies_for_svd_train.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8", header = FALSE)
-  test <- read.csv("movies_for_svd_test.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8", header = FALSE)
-  train_tokens_tf_idf = as.matrix(train[,-c(1, ncol(train))])
-  test_tokens_tf_idf = as.matrix(test[,-c(1, ncol(test))])
-  # Convert our class label into a factor.
-  train$Label <- as.factor(train[,ncol(train)])
-  test$Label <- as.factor(test[,ncol(test)])
-  result <- list(
-    "train" = train, "test" = test,
-    "train_tokens_tf_idf" = train_tokens_tf_idf,  "test_tokens_tf_idf" = test_tokens_tf_idf)
-
-  return(result)
+  write.csv(train_df, file = "spam_train_bag_of_words.csv", fileEncoding = "UTF-8")
+  write.csv(test_df, file = "spam_test_bag_of_words.csv", fileEncoding = "UTF-8")
 }
 ```
 
 ```{r}
 # Preprocess data and save (without SVD)
-data = prepare_movie_data()
 spam_data = prepare_spam_data()
 write_spam_data_to_csv(spam_data)
-```
-
-```{r}
-# Load preprocessed data Spam
-prepared_spam_data = load_prepared_spam_data()
-```
-
-```{r}
-#  Apply SVD Spam
-modified_spam_data = prepared_spam_data
-train_tokens_svd = perform_svd(modified_spam_data$train_tokens_tf_idf, 50)
-modified_spam_data$train_tokens_tf_idf = train_tokens_svd$v
-modified_spam_data$test_tokens_tf_idf = t(
-  train_tokens_svd$sigma_inverse * train_tokens_svd$u_transpose %*% t(modified_spam_data$test_tokens_tf_idf))
-
-write_spam_data_to_csv(modified_spam_data)
-```
-
-```{r}
-# Load preprocessed data Movie
-prepared_movie_data = load_prepared_movie_data()
-```
-
-```{r}
-#  Apply SVD Movie
-modified_movie_data = prepared_movie_data
-train_tokens_svd = perform_svd(modified_movie_data$train_tokens_tf_idf, 50)
-modified_movie_data$train_tokens_tf_idf = train_tokens_svd$v
-modified_movie_data$test_tokens_tf_idf = t(
-  train_tokens_svd$sigma_inverse * train_tokens_svd$u_transpose %*% t(modified_movie_data$test_tokens_tf_idf))
-
-write_movie_data_to_csv(modified_movie_data)
 ```
