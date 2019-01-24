@@ -129,7 +129,7 @@ pre_process_text_data <- function(train, test) {
 ```{r}
 prepare_spam_data <- function() {
   # Load up the .CSV data and explore in RStudio.
-  spam.raw <- read.csv("spam.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+  spam.raw <- read.csv("spam_raw.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8")
   
   # Clean up the data frame and view our handiwork.
   spam.raw <- spam.raw[, 1:2]
